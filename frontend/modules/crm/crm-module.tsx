@@ -17,7 +17,7 @@ const nav = [
   { label: "Overview", icon: LayoutDashboard, href: "#" },
   { label: "Inbox", icon: Inbox, href: "/inbox" },
   { label: "CRM", icon: Users, href: "/crm", active: true },
-  { label: "Finance", icon: FileText, href: "#" },
+  { label: "Finance", icon: FileText, href: "/finance" },
   { label: "Tasks", icon: Check, href: "#" },
 ];
 

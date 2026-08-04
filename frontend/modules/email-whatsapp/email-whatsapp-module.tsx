@@ -59,7 +59,7 @@ const nav = [
   { label: "Overview", icon: LayoutDashboard, href: "#" },
   { label: "Inbox", icon: Inbox, href: "/inbox", active: true, count: 8 },
   { label: "CRM", icon: Users, href: "/crm" },
-  { label: "Finance", icon: FileText, href: "#" },
+  { label: "Finance", icon: FileText, href: "/finance" },
   { label: "Tasks", icon: Check, href: "#" },
 ];
 

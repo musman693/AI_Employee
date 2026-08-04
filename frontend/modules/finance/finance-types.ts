@@ -1,0 +1,7 @@
+export type LineItem = { description: string; quantity: number; unit_price: number; discount_percent?: number };
+export type Status = "draft" | "pending_approval" | "approved" | "rejected" | "sent" | "paid" | "overdue" | "cancelled";
+export type Quotation = { id: string; status: Status; client_name: string; client_email: string; line_items: LineItem[]; subtotal: number; discount_amount: number; tax_amount: number; total: number; valid_until?: string; payment_terms: string; created_at: string; branding: { company_name: string; address: string; phone: string; email: string } };
+export type Invoice = { id: string; invoice_number: string; status: Status; client_name: string; client_email: string; line_items: LineItem[]; subtotal: number; tax_amount: number; total: number; due_date?: string; payment_link?: string; created_at: string; paid_at?: string };
+export type FinanceSummary = { period: string; total_revenue: number; total_expenses: number; net_profit: number; profit_margin_percent: number; outstanding_invoices: number; overdue_invoices: number; ai_insight: string };
+export type Forecast = { period: string; projected_revenue: number; projected_expenses: number; projected_profit: number; confidence_percent: number; ai_analysis: string; recommendations: string[] };
+export type Categorization = { description: string; amount: number; suggested_category: string; transaction_type: string; confidence_percent: number; ai_reasoning: string };
