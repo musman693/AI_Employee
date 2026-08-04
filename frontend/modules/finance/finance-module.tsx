@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowDownRight, ArrowUpRight, AtSign, Bell, Bot, Check,
+  AlertCircle, ArrowDownRight, ArrowUpRight, AtSign, Bell, Bot, BrainCircuit, Check,
   CheckCircle2, CircleDollarSign, Download, FileCheck2, FileText,
   Inbox, LayoutDashboard, LoaderCircle, Mail, Menu, MoreHorizontal, Plus,
   ReceiptText, RefreshCw, Search, Send, Sparkles, TrendingUp, Users, WandSparkles, X,
@@ -19,6 +19,7 @@ const currency = new Intl.NumberFormat("en-PK", { style: "currency", currency: "
 const nav = [
   { label: "Overview", icon: LayoutDashboard, href: "#" }, { label: "Inbox", icon: Inbox, href: "/inbox" },
   { label: "CRM", icon: Users, href: "/crm" }, { label: "Finance", icon: FileText, href: "/finance", active: true },
+  { label: "Intelligence", icon: BrainCircuit, href: "/intelligence" },
   { label: "Tasks", icon: Check, href: "#" },
 ];
 

@@ -8,6 +8,7 @@ and API integration in a dedicated directory.
 - `email-whatsapp/` - Unified Email and WhatsApp assistant inbox (Module 1)
 - `crm/` - Customer records, lead management, and sales pipeline (Module 2)
 - `finance/` - API-connected quotations, invoices, payments, and finance insights (Module 3)
+- `intelligence/` - Meeting transcription, document OCR/search, and contract analysis (Module 4)
 
 Application routes under `app/` should remain small and import their interface
 from the corresponding module directory.

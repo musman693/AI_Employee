@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  Activity, AtSign, Bell, Bot, BriefcaseBusiness, CalendarClock,
+  Activity, AtSign, Bell, Bot, BrainCircuit, BriefcaseBusiness, CalendarClock,
   Check, ChevronDown, CircleDollarSign, FileText, Inbox, KanbanSquare,
   LayoutDashboard, List, Mail, Menu, MoreHorizontal, Phone, Plus, Search,
   Sparkles, TrendingUp, UserPlus, Users, WandSparkles, X,
@@ -18,6 +18,7 @@ const nav = [
   { label: "Inbox", icon: Inbox, href: "/inbox" },
   { label: "CRM", icon: Users, href: "/crm", active: true },
   { label: "Finance", icon: FileText, href: "/finance" },
+  { label: "Intelligence", icon: BrainCircuit, href: "/intelligence" },
   { label: "Tasks", icon: Check, href: "#" },
 ];
 

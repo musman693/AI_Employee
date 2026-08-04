@@ -6,6 +6,7 @@ import {
   AtSign,
   Bell,
   Bot,
+  BrainCircuit,
   CalendarClock,
   Check,
   ChevronDown,
@@ -60,6 +61,7 @@ const nav = [
   { label: "Inbox", icon: Inbox, href: "/inbox", active: true, count: 8 },
   { label: "CRM", icon: Users, href: "/crm" },
   { label: "Finance", icon: FileText, href: "/finance" },
+  { label: "Intelligence", icon: BrainCircuit, href: "/intelligence" },
   { label: "Tasks", icon: Check, href: "#" },
 ];
 
