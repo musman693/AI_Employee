@@ -6,6 +6,7 @@ and API integration in a dedicated directory.
 ## Current modules
 
 - `email-whatsapp/` - Unified Email and WhatsApp assistant inbox (Module 1)
+- `crm/` - Customer records, lead management, and sales pipeline (Module 2)
 
 Application routes under `app/` should remain small and import their interface
 from the corresponding module directory.

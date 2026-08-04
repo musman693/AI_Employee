@@ -139,10 +139,10 @@
   .compose-button { height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; background: #e4f6ec; color: #173d30; font-size: 13px; font-weight: 700; transition: .2s ease; }
   .compose-button:hover { transform: translateY(-1px); background: #fff; }
   .primary-nav, .nav-section { display: grid; gap: 4px; margin-top: 24px; }
-  .primary-nav button, .nav-section button { height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 11px; border-radius: 8px; color: #9fb0a9; font-size: 13px; text-align: left; transition: .18s ease; }
-  .primary-nav button:hover, .nav-section button:hover { color: white; background: rgba(255,255,255,.06); }
-  .primary-nav button.active { color: white; background: rgba(190,232,212,.13); }
-  .primary-nav button b { margin-left: auto; min-width: 21px; padding: 2px 6px; border-radius: 999px; background: #a8dfc4; color: #173b2e; font-size: 10px; text-align: center; }
+  .primary-nav a, .nav-section button { height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 11px; border-radius: 8px; color: #9fb0a9; font-size: 13px; text-align: left; transition: .18s ease; }
+  .primary-nav a:hover, .nav-section button:hover { color: white; background: rgba(255,255,255,.06); }
+  .primary-nav a.active { color: white; background: rgba(190,232,212,.13); }
+  .primary-nav a b { margin-left: auto; min-width: 21px; padding: 2px 6px; border-radius: 999px; background: #a8dfc4; color: #173b2e; font-size: 10px; text-align: center; }
   .nav-section { margin-top: 28px; }
   .nav-section > span { padding: 0 11px 8px; color: #698078; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
   .sidebar-foot { margin-top: auto; }

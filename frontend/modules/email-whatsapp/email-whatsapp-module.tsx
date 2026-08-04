@@ -28,6 +28,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type Channel = "all" | "email" | "whatsapp";
@@ -55,11 +56,11 @@ const conversations: Conversation[] = [
 ];
 
 const nav = [
-  { label: "Overview", icon: LayoutDashboard },
-  { label: "Inbox", icon: Inbox, active: true, count: 8 },
-  { label: "CRM", icon: Users },
-  { label: "Finance", icon: FileText },
-  { label: "Tasks", icon: Check },
+  { label: "Overview", icon: LayoutDashboard, href: "#" },
+  { label: "Inbox", icon: Inbox, href: "/inbox", active: true, count: 8 },
+  { label: "CRM", icon: Users, href: "/crm" },
+  { label: "Finance", icon: FileText, href: "#" },
+  { label: "Tasks", icon: Check, href: "#" },
 ];
 
 export function EmailWhatsAppModule() {
@@ -94,7 +95,7 @@ export function EmailWhatsAppModule() {
         <div className="brand"><span className="brand-mark"><Sparkles size={17} /></span><span>workmate</span><button className="icon-button mobile-close" onClick={() => setSidebarOpen(false)}><X size={18} /></button></div>
         <button className="compose-button"><Plus size={17} /> Compose</button>
         <nav className="primary-nav" aria-label="Primary navigation">
-          {nav.map(({ label, icon: Icon, active, count }) => <button key={label} className={active ? "active" : ""}><Icon size={18} /><span>{label}</span>{count && <b>{count}</b>}</button>)}
+          {nav.map(({ label, icon: Icon, href, active, count }) => <Link href={href} key={label} className={active ? "active" : ""}><Icon size={18} /><span>{label}</span>{count && <b>{count}</b>}</Link>)}
         </nav>
         <div className="nav-section"><span>Workspace</span><button><Bot size={18} /> AI employees</button><button><AtSign size={18} /> Integrations</button></div>
         <div className="sidebar-foot"><div className="usage"><div><span>AI requests</span><strong>328 / 500</strong></div><i><em /></i><small>Resets in 12 days</small></div><button className="profile"><span>NK</span><div><strong>Nouman Khan</strong><small>Acme Studio</small></div><MoreHorizontal size={17} /></button></div>
