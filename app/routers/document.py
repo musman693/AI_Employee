@@ -9,7 +9,7 @@ router = APIRouter()
 async def upload_and_process_document(file: UploadFile = File(...)):
     doc_id = str(uuid.uuid4())
     file_bytes = await file.read()
-    
+    await file.seek(0)
     s3_url = await upload_file_to_s3(file, folder="documents")
     extracted_text, index_status = await extract_text_and_index(file_bytes, file.filename, doc_id)
     

@@ -10,6 +10,7 @@ async def process_meeting(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid audio format")
 
     file_url = await upload_file_to_s3(file, folder="meetings")
+    await file.seek(0)
     analysis = await transcribe_and_analyze_audio(file)
     analysis["file_url"] = file_url
     
