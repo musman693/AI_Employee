@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+boto3
+elasticsearch
+pytesseract
+pillow
+openai
+pytest
+python-multipart
+python-dotenv
+# Module 3 (Shayan) — PDF & QR code generation
+reportlab
+qrcode[pil]
+httpx

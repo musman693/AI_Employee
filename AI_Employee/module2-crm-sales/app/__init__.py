@@ -1,0 +1,1 @@
+"""CRM Sales module package."""
