@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { financeApi } from "./finance-api";
 import type { Categorization, FinanceSummary, Forecast, Invoice, Quotation, Status } from "./finance-types";
+import { useQuotations, useInvoices, useFinanceSummary, useForecast, useCategorizeTransaction } from "@/hooks/finance";
 import styles from "./finance.module.css";
 
 type Tab = "overview" | "quotations" | "invoices";
@@ -37,24 +38,25 @@ export function FinanceModule() {
   const [createKind, setCreateKind] = useState<DocumentKind | null>(null);
   const [toast, setToast] = useState("");
   const [categorization, setCategorization] = useState<Categorization | null>(null);
+  const categorizeMutation = useCategorizeTransaction();
 
-  const load = useCallback(async () => {
-    setLoading(true); setError("");
-    try {
-      const [quoteData, invoiceData, summaryData, forecastData] = await financeApi.load();
-      setQuotations(quoteData); setInvoices(invoiceData); setSummary(summaryData); setForecast(forecastData);
-    } catch (caught) { setError(caught instanceof Error ? caught.message : "Unable to load finance data."); }
-    finally { setLoading(false); }
-  }, []);
+  // Use React Query hooks for data fetching
+  const { data: quotationsData, isLoading: quotesLoading, error: quotesError } = useQuotations();
+  const { data: invoicesData, isLoading: invoicesLoading, error: invoicesError } = useInvoices();
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useFinanceSummary();
+  const { data: forecastData, isLoading: forecastLoading, error: forecastError } = useForecast();
+
+  // reflect query results into local state for existing UI
+  useEffect(() => { if (quotationsData) setQuotations(quotationsData); }, [quotationsData]);
+  useEffect(() => { if (invoicesData) setInvoices(invoicesData); }, [invoicesData]);
+  useEffect(() => { if (summaryData) setSummary(summaryData); }, [summaryData]);
+  useEffect(() => { if (forecastData) setForecast(forecastData); }, [forecastData]);
 
   useEffect(() => {
-    financeApi.load()
-      .then(([quoteData, invoiceData, summaryData, forecastData]) => {
-        setQuotations(quoteData); setInvoices(invoiceData); setSummary(summaryData); setForecast(forecastData);
-      })
-      .catch((caught: unknown) => setError(caught instanceof Error ? caught.message : "Unable to load finance data."))
-      .finally(() => setLoading(false));
-  }, []);
+    setLoading(quotesLoading || invoicesLoading || summaryLoading || forecastLoading);
+    const err = quotesError || invoicesError || summaryError || forecastError;
+    setError(err ? (err instanceof Error ? err.message : String(err)) : "");
+  }, [quotesLoading, invoicesLoading, summaryLoading, forecastLoading, quotesError, invoicesError, summaryError, forecastError]);
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(""), 3200); return () => window.clearTimeout(timer); }, [toast]);
 
   const filteredQuotes = useMemo(() => quotations.filter((item) => `${item.id} ${item.client_name} ${item.status}`.toLowerCase().includes(search.toLowerCase())), [quotations, search]);
@@ -70,7 +72,11 @@ export function FinanceModule() {
   async function categorize(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const data = new FormData(event.currentTarget);
     setBusy("categorize"); setCategorization(null);
-    try { setCategorization(await financeApi.categorize(String(data.get("description")), Number(data.get("amount")))); }
+    try {
+      const payload = { description: String(data.get("description")), amount: Number(data.get("amount")) };
+      const res = await categorizeMutation.mutateAsync(payload);
+      setCategorization(res as Categorization);
+    }
     catch (caught) { setToast(caught instanceof Error ? caught.message : "Could not categorize transaction"); }
     finally { setBusy(""); }
   }

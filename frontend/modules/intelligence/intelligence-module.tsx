@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { intelligenceApi } from "./intelligence-api";
 import type { ContractAnalysis, DocumentUpload, MeetingAnalysis, SearchResult } from "./intelligence-types";
+import { useUploadMeeting, useUploadDocument, useSearchDocuments, useAnalyzeContract } from "@/hooks/meetings";
 import styles from "./intelligence.module.css";
 
 type Tab = "meetings" | "documents" | "legal";
@@ -35,10 +36,50 @@ export function IntelligenceModule() {
   const [contract, setContract] = useState<ContractAnalysis | null>(null);
 
   function changeTab(next: Tab) { setTab(next); setError(""); }
-  async function processMeeting() { if (!meetingFile) return; setBusy("meeting"); setError(""); setMeeting(null); try { const response = await intelligenceApi.processMeeting(meetingFile); setMeeting(response.data); } catch (caught) { setError(message(caught)); } finally { setBusy(""); } }
-  async function processDocument() { if (!documentFile) return; setBusy("document"); setError(""); setDocument(null); try { setDocument(await intelligenceApi.uploadDocument(documentFile)); } catch (caught) { setError(message(caught)); } finally { setBusy(""); } }
-  async function searchDocuments(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); setBusy("search"); setError(""); setSearched(true); try { const response = await intelligenceApi.searchDocuments(String(data.get("query"))); setResults(response.results); } catch (caught) { setError(message(caught)); } finally { setBusy(""); } }
-  async function analyzeContract(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); setBusy("legal"); setError(""); setContract(null); try { const response = await intelligenceApi.analyzeContract(String(data.get("contract"))); setContract(response.analysis); } catch (caught) { setError(message(caught)); } finally { setBusy(""); } }
+  const uploadMeetingMutation = useUploadMeeting();
+  const uploadDocumentMutation = useUploadDocument();
+  const searchMutation = useSearchDocuments();
+  const analyzeMutation = useAnalyzeContract();
+
+  async function processMeeting() {
+    if (!meetingFile) return;
+    setBusy("meeting"); setError(""); setMeeting(null);
+    try {
+      const form = new FormData(); form.append("file", meetingFile);
+      const res = await uploadMeetingMutation.mutateAsync(form);
+      setMeeting(res as MeetingAnalysis);
+    } catch (caught) { setError(message(caught)); } finally { setBusy(""); }
+  }
+
+  async function processDocument() {
+    if (!documentFile) return;
+    setBusy("document"); setError(""); setDocument(null);
+    try {
+      const form = new FormData(); form.append("file", documentFile);
+      const res = await uploadDocumentMutation.mutateAsync(form);
+      setDocument(res as DocumentUpload);
+    } catch (caught) { setError(message(caught)); } finally { setBusy(""); }
+  }
+
+  async function searchDocuments(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const data = new FormData(event.currentTarget);
+    setBusy("search"); setError(""); setSearched(true);
+    try {
+      const q = String(data.get("query"));
+      const res = await searchMutation.mutateAsync(q);
+      setResults(res as SearchResult[]);
+    } catch (caught) { setError(message(caught)); } finally { setBusy(""); }
+  }
+
+  async function analyzeContract(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const data = new FormData(event.currentTarget);
+    setBusy("legal"); setError(""); setContract(null);
+    try {
+      const text = String(data.get("contract"));
+      const res = await analyzeMutation.mutateAsync(text);
+      setContract(res as ContractAnalysis);
+    } catch (caught) { setError(message(caught)); } finally { setBusy(""); }
+  }
 
   return <main className={styles.frame}>
     {sidebarOpen && <button className={styles.scrim} aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}

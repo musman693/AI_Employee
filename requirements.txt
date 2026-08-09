@@ -13,3 +13,4 @@ python-dotenv
 reportlab
 qrcode[pil]
 httpx
+pydantic-settings

@@ -118,8 +118,19 @@ Open **`http://localhost:8000/docs`** in your browser to test endpoints visually
 ## 🧪 Running Tests
 
 ```bash
-# Run pytest test suite
+# Run backend pytest test suite
 pytest
+
+### Frontend
+
+# From the frontend folder (Node.js required)
+cd frontend
+# Install deps
+npm install
+# Run unit tests
+npm run test
+# Run e2e tests (Playwright)
+npm run test:e2e
 ```
 
 ---

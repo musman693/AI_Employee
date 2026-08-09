@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend-tests:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+      - name: Run unit tests (frontend)
+        run: |
+          cd frontend
+          npm run test --if-present
+      - name: Install Playwright browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps
+      - name: Run Playwright E2E (frontend)
+        run: |
+          cd frontend
+          npm run test:e2e --if-present
+      - name: Run linter (frontend)
+        run: |
+          cd frontend
+          npm run lint --if-present || true

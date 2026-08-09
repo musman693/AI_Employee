@@ -34,3 +34,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### Frontend (Next.js)
+
+From the `frontend/` folder:
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Run unit tests (Vitest)
+npm run test
+
+# Run e2e tests (Playwright) — ensure the dev server is running
+npm run test:e2e
+```
+
+Create a `.env` in `frontend/` or set the following environment variables (see `.env.example`):
+
+- `NEXT_PUBLIC_API_GATEWAY_URL` — base URL for the backend API
+- `NEXTAUTH_SECRET` — secure random string for NextAuth
+- `NEXT_PUBLIC_NEXTAUTH_URL` — base URL for the frontend (e.g. `http://localhost:3000`)

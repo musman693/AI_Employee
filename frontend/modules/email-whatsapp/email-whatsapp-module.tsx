@@ -30,7 +30,9 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useInboxThreads, useCreateDraft, useSendReply, useThread } from "@/hooks/inbox";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 
 type Channel = "all" | "email" | "whatsapp";
 type Conversation = {
@@ -74,20 +76,53 @@ export function EmailWhatsAppModule() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileThread, setMobileThread] = useState(false);
 
-  const filtered = useMemo(() => conversations.filter((item) => {
+  const { data: threadsFromApi, isLoading: threadsLoading, error: threadsError } = useInboxThreads();
+  const { mutateAsync: createDraftApi, isLoading: creatingDraft } = useCreateDraft();
+  const sendReplyMutation = useSendReply();
+
+  if (threadsLoading) return <LoadingSkeleton rows={6} />;
+  if (threadsError) return <div className="text-destructive">Error loading inbox</div>;
+
+  const [conversationState, setConversationState] = useState<Conversation[]>(conversations);
+
+  // map API threads into UI conversation shape
+  const apiConversations = threadsFromApi?.map((t: any, idx: number) => ({
+    id: Number(t.id ?? idx + 1000),
+    name: t.participants?.[0] ?? "Unknown",
+    initials: (t.participants?.[0] || "").split(" ").map((p: string) => p[0]).join("").slice(0,2).toUpperCase() || "NA",
+    company: t.company ?? "",
+    subject: t.subject ?? t.preview ?? "(no subject)",
+    preview: t.preview ?? (t.messages?.[0]?.text ?? ""),
+    time: t.updated_at ?? "",
+    channel: t.channel ?? "email",
+    unread: t.unread ?? false,
+    starred: t.starred ?? false,
+    priority: t.priority ?? "Normal",
+    color: t.color ?? conversations[idx % conversations.length].color,
+  }));
+
+  useEffect(() => {
+    if (apiConversations && apiConversations.length) setConversationState(apiConversations);
+  }, [apiConversations]);
+
+  const filtered = useMemo(() => conversationState.filter((item) => {
     const matchesChannel = channel === "all" || item.channel === channel;
     const haystack = `${item.name} ${item.company} ${item.subject}`.toLowerCase();
     return matchesChannel && haystack.includes(query.toLowerCase());
-  }), [channel, query]);
+  }), [channel, query, conversationState]);
 
-  const selected = conversations.find((item) => item.id === selectedId) ?? conversations[0];
+  const selected = conversationState.find((item) => item.id === selectedId) ?? conversationState[0] ?? conversations[0];
 
-  function createDraft() {
+  async function createDraft() {
     setIsDrafting(true);
-    window.setTimeout(() => {
-      setDraft("Hi Sarah,\n\nAbsolutely — phase two is planned to begin on September 8 and run for three weeks. We’ll start with creative production, followed by channel rollout and weekly performance reviews.\n\nI can also send a more detailed milestone breakdown if that would be helpful.\n\nBest,\nNouman");
+    try {
+      const res = await createDraftApi({ threadId: String(selected.id), subject: selected.subject, prompt: "Please draft a professional reply to the latest message." });
+      setDraft(res.draft ?? "");
+    } catch (e) {
+      console.error(e);
+    } finally {
       setIsDrafting(false);
-    }, 700);
+    }
   }
 
   return (
@@ -135,7 +170,14 @@ export function EmailWhatsAppModule() {
               <div className="composer-toolbar"><button className="active">Reply</button><button>Reply all</button><button>Forward</button><span /><button className="tone"><Sparkles size={14} /> Professional <ChevronDown size={13} /></button></div>
               <div className={`composer ${isDrafting ? "drafting" : ""}`}>
                 {isDrafting ? <div className="draft-loader"><span /><span /><span /> AI is preparing a thoughtful reply</div> : <textarea aria-label="Reply message" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a reply, or let AI draft one for you…" />}
-                <div className="composer-actions"><div><button className="icon-button"><Paperclip size={17} /></button><button className="ai-draft" onClick={createDraft}><Sparkles size={15} /> Draft with AI</button></div><button className="send-button" disabled={!draft.trim()}><Send size={15} /> Send</button></div>
+                <div className="composer-actions"><div><button className="icon-button"><Paperclip size={17} /></button><button className="ai-draft" onClick={createDraft}><Sparkles size={15} /> Draft with AI</button></div><button className="send-button" disabled={!draft.trim()} onClick={async () => {
+                      try {
+                        await sendReplyMutation.mutateAsync({ threadId: String(selected.id), payload: { body: draft } });
+                        setDraft("");
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}><Send size={15} /> Send</button></div>
               </div>
               <p className="ai-note"><Sparkles size={12} /> AI suggestions use your company knowledge and conversation context.</p>
             </div>
