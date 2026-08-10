@@ -1,4 +1,4 @@
-import type { Customer, Deal, Lead } from "@/types/api";
+import type { Customer, Deal, Lead, LeadCreate } from "@/types/api";
 import { apiClient } from "./base";
 
 export const crmApi = {
@@ -16,6 +16,18 @@ export const crmApi = {
   },
   getLead: async (id: string) => {
     const response = await apiClient.get<Lead>(`/crm/leads/${id}`);
+    return response.data;
+  },
+  createLead: async (payload: LeadCreate) => {
+    const response = await apiClient.post<Lead>('/crm/leads', payload);
+    return response.data;
+  },
+  updateLead: async (id: number, payload: Partial<Pick<Lead, "status" | "score" | "assigned_to">>) => {
+    const response = await apiClient.patch<Lead>(`/crm/leads/${id}`, payload);
+    return response.data;
+  },
+  convertLead: async (id: number) => {
+    const response = await apiClient.post<{ lead: Lead; customer: Customer }>(`/crm/leads/${id}/convert`);
     return response.data;
   },
   listDeals: async () => {

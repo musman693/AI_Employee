@@ -30,20 +30,20 @@ export type Customer = {
 };
 
 export type Lead = {
-  id: string;
+  id: number;
   name: string;
-  company: string;
-  email: string;
-  phone: string;
-  role: string;
-  stage: string;
-  probability: number;
-  value: number;
-  lastActivity: string;
-  nextStep: string;
-  source: string;
-  insight: string;
+  company: string | null;
+  email: string | null;
+  source: string | null;
+  status: string;
+  score: number | null;
+  assigned_to: string | null;
+  converted_customer_id: number | null;
+  created_at: string;
+  updated_at: string;
 };
+
+export type LeadCreate = Pick<Lead, "name"> & Partial<Pick<Lead, "company" | "email" | "source" | "status" | "score" | "assigned_to">>;
 
 export type Deal = {
   id: string;
