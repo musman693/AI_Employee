@@ -1,12 +1,26 @@
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+const CRM_BACKEND_URL = (process.env.CRM_BACKEND_URL ?? "http://127.0.0.1:8001").replace(/\/$/, "");
+const COMMUNICATION_BACKEND_URL = (process.env.COMMUNICATION_BACKEND_URL ?? "http://127.0.0.1:8002").replace(/\/$/, "");
+const AUTH_BACKEND_URL = (process.env.AUTH_BACKEND_URL ?? BACKEND_URL).replace(/\/$/, "");
+
+function resolveTarget(path: string[]) {
+  const [service, ...rest] = path;
+  if (service === "crm") return { baseUrl: CRM_BACKEND_URL, path: rest };
+  if (service === "communications") return { baseUrl: COMMUNICATION_BACKEND_URL, path: rest };
+  if (service === "auth-service") return { baseUrl: AUTH_BACKEND_URL, path: ["api", "auth", ...rest] };
+  return { baseUrl: BACKEND_URL, path };
+}
 
 async function proxy(request: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
   const incoming = new URL(request.url);
-  const target = `${BACKEND_URL}/${path.join("/")}${incoming.search}`;
+  const destination = resolveTarget(path);
+  const target = `${destination.baseUrl}/${destination.path.map(encodeURIComponent).join("/")}${incoming.search}`;
   const headers = new Headers();
-  const contentType = request.headers.get("content-type");
-  if (contentType) headers.set("content-type", contentType);
+  for (const header of ["accept", "authorization", "content-type"]) {
+    const value = request.headers.get(header);
+    if (value) headers.set(header, value);
+  }
 
   try {
     const response = await fetch(target, {
@@ -23,7 +37,7 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
     return new Response(response.body, { status: response.status, headers: outgoingHeaders });
   } catch {
     return Response.json(
-      { detail: `Backend is unavailable at ${BACKEND_URL}. Start FastAPI with uvicorn main:app --reload.` },
+      { detail: `Backend service is unavailable at ${destination.baseUrl}.` },
       { status: 503 },
     );
   }
@@ -32,3 +46,5 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
 export const GET = proxy;
 export const POST = proxy;
 export const PUT = proxy;
+export const PATCH = proxy;
+export const DELETE = proxy;

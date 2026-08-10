@@ -3,32 +3,32 @@ import { apiClient } from "./base";
 
 export const authClient = {
   signIn: async (data: SignInPayload) => {
-    const response = await apiClient.post<UserProfile>("/auth/login", data);
+    const response = await apiClient.post<UserProfile>("/auth-service/login", data);
     return response.data;
   },
 
   signup: async (data: SignUpPayload) => {
-    const response = await apiClient.post<{ message: string }>("/auth/signup", data);
+    const response = await apiClient.post<{ message: string }>("/auth-service/register", data);
     return response.data;
   },
 
   requestPasswordReset: async (email: string) => {
-    const response = await apiClient.post<{ message: string }>("/auth/forgot-password", { email });
+    const response = await apiClient.post<{ message: string }>("/auth-service/forgot-password", { email });
     return response.data;
   },
 
   resetPassword: async (token: string, password: string) => {
-    const response = await apiClient.post<{ message: string }>("/auth/reset-password", { token, password });
+    const response = await apiClient.post<{ message: string }>("/auth-service/reset-password", { token, password });
     return response.data;
   },
 
   verifyOtp: async (otp: string) => {
-    const response = await apiClient.post<{ verified: boolean }>("/auth/verify-otp", { otp });
+    const response = await apiClient.post<{ verified: boolean }>("/auth-service/verify-otp", { otp });
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await apiClient.get<UserProfile>("/auth/profile");
+    const response = await apiClient.get<UserProfile>("/auth-service/profile");
     return response.data;
   },
 };

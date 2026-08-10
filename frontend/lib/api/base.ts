@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import { getSession } from "next-auth/react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "";
+// Browser requests use the same-origin Next.js proxy. BACKEND_URL remains
+// server-only, so backend hosts and credentials are never exposed to clients.
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_GATEWAY_URL || "/api/backend").replace(/\/$/, "");
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -42,7 +44,7 @@ async function refreshAccessToken(): Promise<string | null> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const resp = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken }, { withCredentials: true });
+      const resp = await axios.post(`${API_BASE_URL}/auth-service/refresh`, { refresh_token: refreshToken }, { withCredentials: true });
       const data = resp.data ?? {};
       const newAccess = data.access_token ?? data.token ?? data.accessToken ?? null;
       const newRefresh = data.refresh_token ?? data.refreshToken ?? null;

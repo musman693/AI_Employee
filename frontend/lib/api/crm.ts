@@ -3,8 +3,8 @@ import { apiClient } from "./base";
 
 export const crmApi = {
   listCustomers: async () => {
-    const response = await apiClient.get<Customer[]>('/crm/customers');
-    return response.data;
+    const response = await apiClient.get<{ items: Customer[] }>('/crm/customers');
+    return response.data.items;
   },
   getCustomer: async (id: string) => {
     const response = await apiClient.get<Customer>(`/crm/customers/${id}`);
@@ -19,11 +19,11 @@ export const crmApi = {
     return response.data;
   },
   listDeals: async () => {
-    const response = await apiClient.get<Deal[]>('/crm/deals');
-    return response.data;
+    const response = await apiClient.get<{ items: Deal[] }>('/crm/deals');
+    return response.data.items;
   },
   updateDealStage: async (dealId: string, stage: string) => {
-    const response = await apiClient.put<Deal>(`/crm/deals/${dealId}/stage`, { stage });
+    const response = await apiClient.post<Deal>(`/crm/deals/${dealId}/stage?stage=${encodeURIComponent(stage)}`);
     return response.data;
   },
 };
