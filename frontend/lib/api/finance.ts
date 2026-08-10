@@ -1,4 +1,5 @@
-import type { Invoice, Quotation, FinanceSummary, Forecast, CategorizationRequest, CategorizationResult } from "@/types/api";
+import type { Invoice, Quotation, FinanceSummary, Forecast, Categorization as CategorizationResult } from "@/modules/finance/finance-types";
+import type { CategorizationRequest } from "@/types/api";
 import { apiClient } from "./base";
 
 export const financeApi = {

@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { use } from "react";
+"use client";
+
 import { useDashboard, useRevenueSeries, useExpenseSeries } from "@/hooks/reporting";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import styles from "./reports.module.css";
-
-export const metadata: Metadata = { title: "Reports | AI Employee OS", description: "Business reports and dashboards" };
 
 export default function ReportsPage() {
   const range = "30d";

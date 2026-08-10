@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTasks, useUpdateTask } from "@/hooks/tasks";
+import type { Task } from "@/types/api";
 import styles from "./tasks.module.css";
 
 export default function TasksPage() {
@@ -9,15 +10,13 @@ export default function TasksPage() {
   const updateMutation = useUpdateTask();
   const [dragged, setDragged] = useState<string | null>(null);
 
-  const columns = useMemo(() => ({
-    todo: [] as any[],
-    in_progress: [] as any[],
-    done: [] as any[],
-  }), []);
+  const columns = useMemo(() => {
+    const grouped: Record<Task["status"], Task[]> = { todo: [], in_progress: [], done: [] };
+    tasks?.forEach((task) => (grouped[task.status] ?? grouped.todo).push(task));
+    return grouped;
+  }, [tasks]);
 
-  if (tasks) tasks.forEach((t: any) => { (columns[t.status as keyof typeof columns] ?? columns.todo).push(t); });
-
-  async function changeStatus(taskId: string, status: string) {
+  async function changeStatus(taskId: string, status: Task["status"]) {
     try { await updateMutation.mutateAsync({ taskId, payload: { status } }); }
     catch (e) { console.error(e); }
   }
@@ -31,11 +30,11 @@ export default function TasksPage() {
       <section className={styles.board}>
         {(["todo", "in_progress", "done"] as const).map((col) => (
           <div key={col} className={styles.column} onDragOver={(e) => e.preventDefault()} onDrop={async (e) => {
-            e.preventDefault(); const id = e.dataTransfer.getData("text/task"); if (!id) return; await changeStatus(id, col.replace("_", "_") ); setDragged(null);
+            e.preventDefault(); const id = e.dataTransfer.getData("text/task"); if (!id) return; await changeStatus(id, col); setDragged(null);
           }}>
             <h3>{col === "todo" ? "To do" : col === "in_progress" ? "In progress" : "Done"}</h3>
             <div className={styles.cards}>
-              {(columns as any)[col].map((task: any) => (
+              {columns[col].map((task) => (
                 <article key={task.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/task", String(task.id))} className={styles.card}>
                   <div className={styles.cardTop}><strong>{task.title}</strong><span className={styles.priority}>{task.priority ?? ""}</span></div>
                   <div className={styles.meta}><small>{task.assignee ?? "—"}</small><small>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due"}</small></div>

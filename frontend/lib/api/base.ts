@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import { getSession } from "next-auth/react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "";
@@ -65,7 +65,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 // Attach Authorization header using NextAuth session token when available,
 // fallback to localStorage for compatibility with older flows.
-apiClient.interceptors.request.use(async (config: AxiosRequestConfig) => {
+apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   try {
     // Prefer explicit header already set
     if (config.headers && (config.headers as any).Authorization) return config;

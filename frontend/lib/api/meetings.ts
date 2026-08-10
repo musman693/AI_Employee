@@ -1,4 +1,4 @@
-import type { MeetingAnalysis, DocumentUpload, SearchResult, ContractAnalysis } from "@/types/api";
+import type { MeetingAnalysis, DocumentUpload, SearchResult, ContractAnalysis } from "@/modules/intelligence/intelligence-types";
 import { apiClient } from "./base";
 
 export const meetingsApi = {

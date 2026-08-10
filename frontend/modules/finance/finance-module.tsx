@@ -41,10 +41,14 @@ export function FinanceModule() {
   const categorizeMutation = useCategorizeTransaction();
 
   // Use React Query hooks for data fetching
-  const { data: quotationsData, isLoading: quotesLoading, error: quotesError } = useQuotations();
-  const { data: invoicesData, isLoading: invoicesLoading, error: invoicesError } = useInvoices();
-  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useFinanceSummary();
-  const { data: forecastData, isLoading: forecastLoading, error: forecastError } = useForecast();
+  const { data: quotationsData, isLoading: quotesLoading, error: quotesError, refetch: refetchQuotations } = useQuotations();
+  const { data: invoicesData, isLoading: invoicesLoading, error: invoicesError, refetch: refetchInvoices } = useInvoices();
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useFinanceSummary();
+  const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useForecast();
+
+  const load = useCallback(async () => {
+    await Promise.all([refetchQuotations(), refetchInvoices(), refetchSummary(), refetchForecast()]);
+  }, [refetchQuotations, refetchInvoices, refetchSummary, refetchForecast]);
 
   // reflect query results into local state for existing UI
   useEffect(() => { if (quotationsData) setQuotations(quotationsData); }, [quotationsData]);

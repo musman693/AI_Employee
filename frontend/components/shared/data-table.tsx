@@ -1,9 +1,8 @@
-import { Table as BaseTable } from "@base-ui/react/table";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 export function DataTable({ className, children }: { className?: string; children: ReactNode }) {
-  return <BaseTable className={cn("w-full overflow-hidden rounded-3xl border border-border bg-card", className)}>{children}</BaseTable>;
+  return <table className={cn("w-full overflow-hidden rounded-3xl border border-border bg-card", className)}>{children}</table>;
 }
 
 export function TableHead({ children }: { children: ReactNode }) {

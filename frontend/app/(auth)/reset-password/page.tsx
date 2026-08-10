@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/api/auth";
@@ -14,6 +14,10 @@ const schema = z.object({ password: z.string().min(8, "Password must be at least
 type FormValues = z.infer<typeof schema>;
 
 export default function ResetPasswordPage() {
+  return <Suspense fallback={<div className="text-center text-sm text-muted-foreground">Loading reset form...</div>}><ResetPasswordForm /></Suspense>;
+}
+
+function ResetPasswordForm() {
   const search = useSearchParams();
   const token = search.get("token") ?? "";
   const router = useRouter();

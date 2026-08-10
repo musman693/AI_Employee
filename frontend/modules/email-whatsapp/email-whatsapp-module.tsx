@@ -30,9 +30,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
-import { useInboxThreads, useCreateDraft, useSendReply, useThread } from "@/hooks/inbox";
-import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { useMemo, useState } from "react";
+import { useInboxThreads, useCreateDraft, useSendReply } from "@/hooks/inbox";
 
 type Channel = "all" | "email" | "whatsapp";
 type Conversation = {
@@ -76,34 +75,29 @@ export function EmailWhatsAppModule() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileThread, setMobileThread] = useState(false);
 
-  const { data: threadsFromApi, isLoading: threadsLoading, error: threadsError } = useInboxThreads();
-  const { mutateAsync: createDraftApi, isLoading: creatingDraft } = useCreateDraft();
+  const { data: threadsFromApi, error: threadsError } = useInboxThreads();
+  const { mutateAsync: createDraftApi } = useCreateDraft();
   const sendReplyMutation = useSendReply();
 
-  if (threadsLoading) return <LoadingSkeleton rows={6} />;
-  if (threadsError) return <div className="text-destructive">Error loading inbox</div>;
-
-  const [conversationState, setConversationState] = useState<Conversation[]>(conversations);
-
-  // map API threads into UI conversation shape
-  const apiConversations = threadsFromApi?.map((t: any, idx: number) => ({
-    id: Number(t.id ?? idx + 1000),
-    name: t.participants?.[0] ?? "Unknown",
-    initials: (t.participants?.[0] || "").split(" ").map((p: string) => p[0]).join("").slice(0,2).toUpperCase() || "NA",
-    company: t.company ?? "",
-    subject: t.subject ?? t.preview ?? "(no subject)",
-    preview: t.preview ?? (t.messages?.[0]?.text ?? ""),
-    time: t.updated_at ?? "",
-    channel: t.channel ?? "email",
-    unread: t.unread ?? false,
-    starred: t.starred ?? false,
-    priority: t.priority ?? "Normal",
-    color: t.color ?? conversations[idx % conversations.length].color,
-  }));
-
-  useEffect(() => {
-    if (apiConversations && apiConversations.length) setConversationState(apiConversations);
-  }, [apiConversations]);
+  const conversationState = useMemo<Conversation[]>(() => {
+    if (!threadsFromApi?.length) return conversations;
+    return threadsFromApi.map((thread, index) => {
+      const name = thread.participants?.[0] ?? "Unknown";
+      return {
+        id: Number(thread.id) || index + 1000,
+        name,
+        initials: name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "NA",
+        company: "",
+        subject: thread.subject || thread.preview || "(no subject)",
+        preview: thread.preview || thread.messages?.[0]?.text || "",
+        time: thread.messages?.at(-1)?.timestamp || "",
+        channel: thread.channel,
+        unread: thread.unread,
+        priority: thread.priority,
+        color: conversations[index % conversations.length].color,
+      };
+    });
+  }, [threadsFromApi]);
 
   const filtered = useMemo(() => conversationState.filter((item) => {
     const matchesChannel = channel === "all" || item.channel === channel;
@@ -139,6 +133,7 @@ export function EmailWhatsAppModule() {
       </aside>
 
       <section className="workspace">
+        {threadsError && <div role="status" style={{ padding: "8px 20px", background: "#fff7e6", color: "#805b16", borderBottom: "1px solid #f0d9a7", fontSize: 12 }}>Inbox backend is unavailable. Showing demo conversations.</div>}
         <header className="topbar"><button className="icon-button menu-button" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button><div><p>Communication</p><h1>Unified inbox</h1></div><div className="top-actions"><button className="status-pill"><i /> All systems operational</button><button className="icon-button"><Search size={18} /></button><button className="icon-button notification"><Bell size={18} /><i /></button></div></header>
 
         <div className="inbox-grid">
