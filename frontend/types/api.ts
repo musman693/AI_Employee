@@ -215,3 +215,5 @@ export type ChartPoint = {
   date: string;
   value: number;
 };
+
+export type ForecastSeries = { points: ChartPoint[]; confidence: number; analysis: string; upside: number; downside: number; recommendations: string[] };
