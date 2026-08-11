@@ -7,6 +7,7 @@ import { BrainCircuit, Check, FileText, GitBranch, Inbox, LayoutDashboard, LogOu
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Inbox", href: "/inbox", icon: Inbox }, { label: "CRM", href: "/crm", icon: Users },
   { label: "Finance", href: "/finance", icon: FileText }, { label: "Intelligence", href: "/intelligence", icon: BrainCircuit },
   { label: "Tasks", href: "/tasks", icon: Check }, { label: "Workflows", href: "/workflow", icon: GitBranch },
