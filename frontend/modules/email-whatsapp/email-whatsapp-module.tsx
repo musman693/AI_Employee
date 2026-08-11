@@ -30,7 +30,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useInboxThreads, useCreateDraft, useSendReply } from "@/hooks/inbox";
 
 type Channel = "all" | "email" | "whatsapp";
@@ -74,6 +74,12 @@ export function EmailWhatsAppModule() {
   const [isDrafting, setIsDrafting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileThread, setMobileThread] = useState(false);
+  const [starred, setStarred] = useState<Set<number>>(new Set());
+  const [archived, setArchived] = useState<Set<number>>(new Set());
+  const [reminders, setReminders] = useState<Set<number>>(new Set());
+  const [sentMessages, setSentMessages] = useState<Record<number, string[]>>({});
+  const [notice, setNotice] = useState("");
+  const attachmentRef = useRef<HTMLInputElement>(null);
 
   const { data: threadsFromApi, error: threadsError } = useInboxThreads();
   const { mutateAsync: createDraftApi } = useCreateDraft();
@@ -100,12 +106,19 @@ export function EmailWhatsAppModule() {
   }, [threadsFromApi]);
 
   const filtered = useMemo(() => conversationState.filter((item) => {
+    if (archived.has(item.id)) return false;
     const matchesChannel = channel === "all" || item.channel === channel;
     const haystack = `${item.name} ${item.company} ${item.subject}`.toLowerCase();
     return matchesChannel && haystack.includes(query.toLowerCase());
-  }), [channel, query, conversationState]);
+  }), [channel, query, conversationState, archived]);
 
   const selected = conversationState.find((item) => item.id === selectedId) ?? conversationState[0] ?? conversations[0];
+  const selectedThread = threadsFromApi?.find((thread) => String(thread.id) === String(selected.id));
+  const messages = selectedThread?.messages ?? [];
+
+  function flash(message: string) { setNotice(message); window.setTimeout(() => setNotice(""), 3000); }
+  function toggleSet(setter: React.Dispatch<React.SetStateAction<Set<number>>>, id: number) { setter((current) => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; }); }
+  function attach(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; if (file) flash(`${file.name} attached to this draft.`); }
 
   async function createDraft() {
     setIsDrafting(true);
@@ -113,7 +126,7 @@ export function EmailWhatsAppModule() {
       const res = await createDraftApi({ threadId: String(selected.id), subject: selected.subject, prompt: "Please draft a professional reply to the latest message." });
       setDraft(res.draft ?? "");
     } catch (e) {
-      console.error(e);
+      flash(e instanceof Error ? e.message : "AI draft could not be created.");
     } finally {
       setIsDrafting(false);
     }
@@ -121,6 +134,7 @@ export function EmailWhatsAppModule() {
 
   return (
     <main className="app-frame">
+      {notice && <div role="status" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 200, padding: "11px 14px", borderRadius: 9, color: "white", background: "#174333", fontSize: 11, boxShadow: "0 12px 32px #0003" }}>{notice}</div>}
       {sidebarOpen && <button aria-label="Close navigation" className="mobile-scrim" onClick={() => setSidebarOpen(false)} />}
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="brand"><span className="brand-mark"><Sparkles size={17} /></span><span>workmate</span><button className="icon-button mobile-close" onClick={() => setSidebarOpen(false)}><X size={18} /></button></div>
@@ -139,7 +153,7 @@ export function EmailWhatsAppModule() {
         <div className="inbox-grid">
           <section className={`conversation-panel ${mobileThread ? "hide-mobile" : ""}`}>
             <div className="channel-tabs">
-              {([ ["all", "All", Inbox], ["email", "Email", Mail], ["whatsapp", "WhatsApp", MessageCircle] ] as const).map(([value, label, Icon]) => <button key={value} onClick={() => setChannel(value)} className={channel === value ? "active" : ""}><Icon size={15} />{label}{value === "all" && <span>8</span>}</button>)}
+              {([ ["all", "All", Inbox], ["email", "Email", Mail], ["whatsapp", "WhatsApp", MessageCircle] ] as const).map(([value, label, Icon]) => <button key={value} onClick={() => setChannel(value)} className={channel === value ? "active" : ""}><Icon size={15} />{label}{value === "all" && <span>{conversationState.length - archived.size}</span>}</button>)}
             </div>
             <label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search conversations" /></label>
             <div className="list-heading"><span>{filtered.length} conversations</span><button>Newest <ChevronDown size={14} /></button></div>
@@ -154,31 +168,33 @@ export function EmailWhatsAppModule() {
           </section>
 
           <section className={`thread-panel ${mobileThread ? "show-mobile" : ""}`}>
-            <div className="thread-head"><button className="icon-button back-button" onClick={() => setMobileThread(false)}><ArrowLeft size={19} /></button><span className="avatar large" style={{ background: selected.color }}>{selected.initials}</span><div><h2>{selected.name}</h2><p>{selected.company} · {selected.channel === "email" ? "Email" : "WhatsApp"}</p></div><div className="thread-actions"><button className="icon-button"><Star size={18} fill={selected.starred ? "#c48b2f" : "none"} color={selected.starred ? "#c48b2f" : "currentColor"} /></button><button className="icon-button"><Archive size={18} /></button><button className="icon-button"><MoreHorizontal size={18} /></button></div></div>
+            <div className="thread-head"><button className="icon-button back-button" onClick={() => setMobileThread(false)}><ArrowLeft size={19} /></button><span className="avatar large" style={{ background: selected.color }}>{selected.initials}</span><div><h2>{selected.name}</h2><p>{selected.company} · {selected.channel === "email" ? "Email" : "WhatsApp"}</p></div><div className="thread-actions"><button aria-label="Star conversation" className="icon-button" onClick={() => toggleSet(setStarred, selected.id)}><Star size={18} fill={starred.has(selected.id) || selected.starred ? "#c48b2f" : "none"} color={starred.has(selected.id) || selected.starred ? "#c48b2f" : "currentColor"} /></button><button aria-label="Archive conversation" className="icon-button" onClick={() => { toggleSet(setArchived, selected.id); setMobileThread(false); flash("Conversation archived."); }}><Archive size={18} /></button><button className="icon-button"><MoreHorizontal size={18} /></button></div></div>
             <div className="thread-body">
-              <div className="ai-summary"><div className="ai-icon"><WandSparkles size={18} /></div><div><span>AI conversation brief</span><p>Sarah likes the proposal and needs the phase-two timeline clarified before sharing it with her leadership team.</p></div><button>View details</button></div>
+              <div className="ai-summary"><div className="ai-icon"><WandSparkles size={18} /></div><div><span>Conversation brief</span><p>{selected.preview}</p></div><button onClick={() => flash(`${messages.length || 1} message${messages.length === 1 ? "" : "s"} in this thread.`)}>View details</button></div>
               <div className="date-rule"><span>Today</span></div>
-              <article className="message incoming"><div className="message-top"><span className="avatar small" style={{ background: selected.color }}>{selected.initials}</span><div><strong>{selected.name}</strong><span>to me · 9:42 AM</span></div><button><MoreHorizontal size={16} /></button></div><h3>{selected.subject}</h3><p>Hi Nouman,</p><p>Thanks for sending this over. The direction looks strong and the team is excited about the campaign concept.</p><p>Could you clarify the timeline for phase two, especially when creative production begins and how long the rollout will take?</p><p>Best,<br />Sarah</p></article>
-              <div className="follow-up"><CalendarClock size={17} /><span><strong>Smart follow-up</strong> suggested for Friday if there’s no reply.</span><button>Set reminder</button></div>
+              {(messages.length ? messages : [{ id: `fallback-${selected.id}`, sender: selected.name, text: selected.preview, timestamp: selected.time, type: selected.channel }]).map((message) => <article key={message.id} className="message incoming"><div className="message-top"><span className="avatar small" style={{ background: selected.color }}>{selected.initials}</span><div><strong>{message.sender}</strong><span>{message.timestamp}</span></div><button><MoreHorizontal size={16} /></button></div><h3>{selected.subject}</h3><p>{message.text}</p></article>)}
+              {(sentMessages[selected.id] ?? []).map((text, index) => <article key={`sent-${index}`} className="message"><div className="message-top"><div><strong>You</strong><span>just now</span></div></div><p>{text}</p></article>)}
+              <div className="follow-up"><CalendarClock size={17} /><span><strong>Smart follow-up</strong> {reminders.has(selected.id) ? "is scheduled." : "suggested if there’s no reply."}</span><button onClick={() => { const removing = reminders.has(selected.id); toggleSet(setReminders, selected.id); flash(removing ? "Reminder removed." : "Reminder scheduled."); }}>{reminders.has(selected.id) ? "Remove" : "Set reminder"}</button></div>
             </div>
             <div className="composer-wrap">
               <div className="composer-toolbar"><button className="active">Reply</button><button>Reply all</button><button>Forward</button><span /><button className="tone"><Sparkles size={14} /> Professional <ChevronDown size={13} /></button></div>
               <div className={`composer ${isDrafting ? "drafting" : ""}`}>
                 {isDrafting ? <div className="draft-loader"><span /><span /><span /> AI is preparing a thoughtful reply</div> : <textarea aria-label="Reply message" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a reply, or let AI draft one for you…" />}
-                <div className="composer-actions"><div><button className="icon-button"><Paperclip size={17} /></button><button className="ai-draft" onClick={createDraft}><Sparkles size={15} /> Draft with AI</button></div><button className="send-button" disabled={!draft.trim()} onClick={async () => {
+                <div className="composer-actions"><div><input ref={attachmentRef} type="file" hidden onChange={attach} /><button aria-label="Attach file" className="icon-button" onClick={() => attachmentRef.current?.click()}><Paperclip size={17} /></button><button className="ai-draft" onClick={createDraft}><Sparkles size={15} /> Draft with AI</button></div><button className="send-button" disabled={!draft.trim() || sendReplyMutation.isPending} onClick={async () => {
+                      const body = draft.trim();
                       try {
-                        await sendReplyMutation.mutateAsync({ threadId: String(selected.id), payload: { body: draft } });
-                        setDraft("");
+                        await sendReplyMutation.mutateAsync({ threadId: String(selected.id), payload: { body } });
                       } catch (e) {
-                        console.error(e);
+                        if (threadsFromApi?.length) return flash(e instanceof Error ? e.message : "Message could not be sent.");
                       }
+                      setSentMessages((current) => ({ ...current, [selected.id]: [...(current[selected.id] ?? []), body] })); setDraft(""); flash("Reply added to the conversation.");
                     }}><Send size={15} /> Send</button></div>
               </div>
               <p className="ai-note"><Sparkles size={12} /> AI suggestions use your company knowledge and conversation context.</p>
             </div>
           </section>
 
-          <aside className="contact-panel"><div className="contact-card"><span className="avatar xl" style={{ background: selected.color }}>{selected.initials}</span><h3>{selected.name}</h3><p>Marketing Director</p><span>{selected.company}</span><div className="contact-buttons"><button><Mail size={15} /> Email</button><button><Phone size={15} /> Call</button></div></div><div className="details"><h4>Contact details</h4><dl><div><dt>Email</dt><dd>sarah@northstar.studio</dd></div><div><dt>Phone</dt><dd>+1 415 555 0182</dd></div><div><dt>Location</dt><dd>San Francisco, CA</dd></div></dl></div><div className="details"><h4>Relationship</h4><div className="health"><span>Strong</span><i><em /></i><b>86%</b></div><p>4 conversations · 2 open deals</p></div><div className="activity"><div><h4>Recent activity</h4><button>View all</button></div><p><span><Mail size={14} /></span><b>Proposal sent</b><time>2 days ago</time></p><p><span><Clock3 size={14} /></span><b>Call completed</b><time>Jun 18</time></p></div></aside>
+          <aside className="contact-panel"><div className="contact-card"><span className="avatar xl" style={{ background: selected.color }}>{selected.initials}</span><h3>{selected.name}</h3><p>{selected.channel === "email" ? "Email contact" : "WhatsApp contact"}</p><span>{selected.company || "No company recorded"}</span><div className="contact-buttons"><a href={selected.name.includes("@") ? `mailto:${selected.name}` : undefined}><Mail size={15} /> Email</a><button onClick={() => flash("Add a phone number in CRM to place a call.")}><Phone size={15} /> Call</button></div></div><div className="details"><h4>Conversation details</h4><dl><div><dt>Channel</dt><dd>{selected.channel}</dd></div><div><dt>Priority</dt><dd>{selected.priority}</dd></div><div><dt>Status</dt><dd>{selected.unread ? "Unread" : "Read"}</dd></div></dl></div><div className="details"><h4>Relationship</h4><div className="health"><span>{selected.priority === "High" ? "Needs attention" : "Active"}</span><i><em /></i><b>{messages.length || 1}</b></div><p>{messages.length || 1} messages in this conversation</p></div><div className="activity"><div><h4>Recent activity</h4><button onClick={() => flash("Full activity history will be available after CRM contact matching.")}>View all</button></div><p><span><Mail size={14} /></span><b>{selected.subject}</b><time>{selected.time}</time></p></div></aside>
         </div>
       </section>
     </main>

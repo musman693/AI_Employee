@@ -15,7 +15,8 @@ export const inboxApi = {
     return response.data;
   },
   summarizeThread: async (threadId: string) => {
-    const response = await apiClient.post<{ summary: string }>(`/inbox/threads/${threadId}/summarize`, {});
+    const thread = await inboxApi.getThread(threadId);
+    const response = await apiClient.post<{ summary: string }>(`/communications/email/summarize`, { messages: thread.messages.map((message) => message.text) });
     return response.data;
   },
   classifyThread: async (threadId: string) => {
@@ -23,7 +24,7 @@ export const inboxApi = {
     return response.data;
   },
   createDraft: async (payload: DraftRequest) => {
-    const response = await apiClient.post<{ draft: string }>('/inbox/drafts', payload);
-    return response.data;
+    const response = await apiClient.post<{ subject: string; body: string }>('/communications/email/draft', { instruction: `${payload.prompt} Subject: ${payload.subject}` });
+    return { draft: response.data.body };
   },
 };

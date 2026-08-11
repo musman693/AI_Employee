@@ -23,3 +23,7 @@ export function useCreateDraft() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inbox", "threads"] }),
   });
 }
+
+export function useSummarizeThread() {
+  return useMutation({ mutationFn: (threadId: string) => inboxApi.summarizeThread(threadId) });
+}
