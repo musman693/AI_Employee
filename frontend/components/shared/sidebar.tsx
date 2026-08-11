@@ -2,51 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Inbox, Users, FileText, BrainCircuit, Check, Settings2, LayoutDashboard } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { BrainCircuit, Check, FileText, GitBranch, Inbox, LayoutDashboard, LogOut, Settings2, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Inbox", href: "/inbox", icon: Inbox },
-  { label: "CRM", href: "/crm", icon: Users },
-  { label: "Finance", href: "/finance", icon: FileText },
-  { label: "Intelligence", href: "/intelligence", icon: BrainCircuit },
-  { label: "Tasks", href: "/tasks", icon: Check },
-  { label: "Reports", href: "/reports", icon: LayoutDashboard },
-  { label: "Settings", href: "/settings", icon: Settings2 },
+  { label: "Inbox", href: "/inbox", icon: Inbox }, { label: "CRM", href: "/crm", icon: Users },
+  { label: "Finance", href: "/finance", icon: FileText }, { label: "Intelligence", href: "/intelligence", icon: BrainCircuit },
+  { label: "Tasks", href: "/tasks", icon: Check }, { label: "Workflows", href: "/workflow", icon: GitBranch },
+  { label: "Reports", href: "/reports", icon: LayoutDashboard }, { label: "Settings", href: "/settings", icon: Settings2 },
 ];
 
-export function Sidebar() {
-  const pathname = usePathname();
-
-  return (
-    <aside className="w-full max-w-[280px] border-r border-border bg-card px-4 py-6 lg:px-5 lg:py-7">
-      <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-3xl bg-primary text-primary-foreground">
-          AI
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">AI Employee OS</p>
-          <p className="text-sm font-semibold text-foreground">Business workspace</p>
-        </div>
-      </div>
-      <nav className="mt-10 space-y-1">
-        {navItems.map((item) => {
-          const active = pathname?.startsWith(item.href);
-          return (
-            <Link key={item.href} href={item.href} className={cn(
-              "group flex items-center gap-3 rounded-3xl px-4 py-3 text-sm font-medium transition",
-              active ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted"
-            )}>
-              <item.icon size={18} className="shrink-0" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="mt-10 rounded-3xl border border-border bg-muted p-4 text-sm text-muted-foreground">
-        <p className="font-semibold text-foreground">AI assistant</p>
-        <p className="mt-3">Automate workflows, surface insights, and keep your teams aligned from one portal.</p>
-      </div>
-    </aside>
-  );
+export function Sidebar({ open = false, close }: { open?: boolean; close?: () => void }) {
+  const pathname = usePathname(); const { data } = useSession();
+  const email = data?.user?.email ?? "Signed in"; const initials = (data?.user?.name ?? email).split(/[ @]/).filter(Boolean).map((part) => part[0]).join("").slice(0,2).toUpperCase();
+  return <aside className={cn("product-sidebar", open && "product-sidebar-open")}>
+    <div className="product-brand"><span>AI</span><div><b>AI Employee</b><small>Business workspace</small></div><button aria-label="Close navigation" onClick={close}><X /></button></div>
+    <nav>{navItems.map((item) => { const active = pathname === item.href; return <Link onClick={close} key={item.href} href={item.href} className={active ? "active" : ""}><item.icon />{item.label}</Link>; })}</nav>
+    <div className="product-assistant"><b>AI workspace</b><p>Automate operations and keep every team aligned.</p></div>
+    <div className="product-account"><span>{initials}</span><div><b>{data?.user?.name ?? "Workspace user"}</b><small>{email}</small></div><button aria-label="Sign out" onClick={() => signOut({ callbackUrl: "/login" })}><LogOut /></button></div>
+  </aside>;
 }
