@@ -8,14 +8,12 @@ export const metadata: Metadata = {
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full bg-background text-foreground">
-      <body className="min-h-screen bg-muted/40 px-4 py-8 sm:px-6">
+    <div className="min-h-screen bg-muted/40 px-4 py-8 text-foreground sm:px-6">
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center justify-center">
           <div className="w-full rounded-3xl border border-border bg-card p-8 shadow-xl shadow-black/5 sm:p-10">
             {children}
           </div>
         </div>
-      </body>
-    </html>
+    </div>
   );
 }

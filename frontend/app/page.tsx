@@ -1,5 +1,3 @@
-import { EmailWhatsAppModule } from "@/modules/email-whatsapp";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return <EmailWhatsAppModule />;
-}
+export default function Home() { redirect("/inbox"); }

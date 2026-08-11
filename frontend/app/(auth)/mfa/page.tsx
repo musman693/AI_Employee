@@ -23,7 +23,7 @@ export default function MfaPage() {
     try {
       const res = await authClient.verifyOtp(data.otp);
       if (res.verified) {
-        router.push("/dashboard/inbox");
+        router.push("/inbox");
       } else {
         setError("OTP verification failed. Please try again.");
       }

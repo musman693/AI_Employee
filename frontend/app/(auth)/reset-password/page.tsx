@@ -30,7 +30,7 @@ function ResetPasswordForm() {
     try {
       await authClient.resetPassword(token, data.password);
       setMessage("Password reset successfully. Redirecting to sign in...");
-      setTimeout(() => router.push("/auth/login"), 1500);
+      setTimeout(() => router.push("/login"), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not reset password.");
     }

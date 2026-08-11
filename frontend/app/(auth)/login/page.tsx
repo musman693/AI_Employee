@@ -40,7 +40,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard/inbox");
+    router.push("/inbox");
   }
 
   return (
@@ -67,7 +67,7 @@ export default function LoginPage() {
         </div>
         {errorMessage && <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">{errorMessage}</div>}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-primary-foreground">
+          <Link href="/forgot-password" className="text-sm text-primary hover:text-primary-foreground">
             Forgot password?
           </Link>
           <Button type="submit" className="inline-flex items-center gap-2" disabled={isSubmitting}>
@@ -77,7 +77,7 @@ export default function LoginPage() {
         </div>
       </form>
       <div className="rounded-3xl border border-border bg-muted p-4 text-sm text-muted-foreground">
-        New to AI Employee OS? <Link href="/auth/signup" className="font-semibold text-foreground hover:text-primary">Create an account</Link>.
+        New to AI Employee OS? <Link href="/signup" className="font-semibold text-foreground hover:text-primary">Create an account</Link>.
       </div>
     </div>
   );

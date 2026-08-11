@@ -18,7 +18,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle: string })
         <button className="inline-flex h-11 w-11 items-center justify-center rounded-3xl border border-border bg-card text-foreground hover:bg-muted">
           <Bell size={18} />
         </button>
-        <Link href="/dashboard/settings" className="inline-flex h-11 w-11 items-center justify-center rounded-3xl border border-border bg-card text-foreground hover:bg-muted">
+        <Link href="/settings" className="inline-flex h-11 w-11 items-center justify-center rounded-3xl border border-border bg-card text-foreground hover:bg-muted">
           <Settings2 size={18} />
         </Link>
         <button className="inline-flex h-11 min-w-[3rem] items-center justify-center gap-2 rounded-3xl border border-border bg-card px-3 text-sm text-foreground hover:bg-muted">

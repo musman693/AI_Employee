@@ -1,7 +1,7 @@
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 const CRM_BACKEND_URL = (process.env.CRM_BACKEND_URL ?? "http://127.0.0.1:8001").replace(/\/$/, "");
 const COMMUNICATION_BACKEND_URL = (process.env.COMMUNICATION_BACKEND_URL ?? "http://127.0.0.1:8002").replace(/\/$/, "");
-const AUTH_BACKEND_URL = (process.env.AUTH_BACKEND_URL ?? BACKEND_URL).replace(/\/$/, "");
+const AUTH_BACKEND_URL = (process.env.AUTH_BACKEND_URL ?? "http://127.0.0.1:5000").replace(/\/$/, "");
 
 function resolveTarget(path: string[]) {
   const [service, ...rest] = path;

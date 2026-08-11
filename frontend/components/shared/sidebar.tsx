@@ -6,13 +6,13 @@ import { Inbox, Users, FileText, BrainCircuit, Check, Settings2, LayoutDashboard
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
-  { label: "CRM", href: "/dashboard/crm", icon: Users },
-  { label: "Finance", href: "/dashboard/finance", icon: FileText },
-  { label: "Intelligence", href: "/dashboard/intelligence", icon: BrainCircuit },
-  { label: "Tasks", href: "/dashboard/tasks", icon: Check },
-  { label: "Reports", href: "/dashboard/reports", icon: LayoutDashboard },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings2 },
+  { label: "Inbox", href: "/inbox", icon: Inbox },
+  { label: "CRM", href: "/crm", icon: Users },
+  { label: "Finance", href: "/finance", icon: FileText },
+  { label: "Intelligence", href: "/intelligence", icon: BrainCircuit },
+  { label: "Tasks", href: "/tasks", icon: Check },
+  { label: "Reports", href: "/reports", icon: LayoutDashboard },
+  { label: "Settings", href: "/settings", icon: Settings2 },
 ];
 
 export function Sidebar() {

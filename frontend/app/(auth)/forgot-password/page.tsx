@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
           <Input type="email" placeholder="you@company.com" {...register("email")} />
         </label>
         <div className="flex items-center justify-between gap-3">
-          <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground">Back to sign in</Link>
+          <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">Back to sign in</Link>
           <Button type="submit" disabled={formState.isSubmitting}>Send reset link</Button>
         </div>
       </form>

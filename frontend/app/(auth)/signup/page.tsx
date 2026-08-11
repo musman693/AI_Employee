@@ -69,7 +69,7 @@ export default function SignupPage() {
         {errorMessage && <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">{errorMessage}</div>}
         {successMessage && <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary-foreground">{successMessage}</div>}
         <div className="flex items-center justify-between gap-3">
-          <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
             Already have an account?
           </Link>
           <Button type="submit" className="inline-flex items-center gap-2" disabled={isSubmitting}>
