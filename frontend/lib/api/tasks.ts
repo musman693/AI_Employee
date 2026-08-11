@@ -1,4 +1,4 @@
-import type { Task, Workflow } from "@/types/api";
+import type { Task, Workflow, WorkflowCreate } from "@/types/api";
 import { apiClient } from "./base";
 
 type BackendTask = Omit<Task, "status" | "assignee"> & {
@@ -29,16 +29,17 @@ export const tasksApi = {
     const response = await apiClient.get<{ workflows: Workflow[] }>('/api/v1/workflow');
     return response.data.workflows;
   },
-  saveWorkflow: async (payload: Workflow) => {
-    const actions = (payload.actions as unknown[]).map((action, index) => {
-      const item = typeof action === "string" ? { type: action, payload: {} } : action as { type?: string; payload?: Record<string, unknown> };
-      return { type: item.type ?? "create_task", name: item.type ?? `Action ${index + 1}`, config: item.payload ?? {}, order: index };
-    });
-    const response = await apiClient.post<Workflow>('/api/v1/workflow', {
-      name: payload.name,
-      trigger: { type: payload.trigger, conditions: {} },
-      actions,
-    });
+  saveWorkflow: async (payload: WorkflowCreate) => {
+    const response = await apiClient.post<Workflow>('/api/v1/workflow/', payload);
+    return response.data;
+  },
+  updateWorkflow: async (id: string, payload: Partial<WorkflowCreate>) => {
+    const response = await apiClient.put<Workflow>(`/api/v1/workflow/${id}`, payload);
+    return response.data;
+  },
+  deleteWorkflow: async (id: string) => apiClient.delete(`/api/v1/workflow/${id}`),
+  executeWorkflow: async (id: string) => {
+    const response = await apiClient.post<{ id: string; status: string }>(`/api/v1/workflow/${id}/execute`, { trigger_data: {} });
     return response.data;
   },
 };

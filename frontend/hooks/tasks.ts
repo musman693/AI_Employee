@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi } from "@/lib/api/tasks";
-import type { Workflow, Task } from "@/types/api";
+import type { WorkflowCreate, Task } from "@/types/api";
 
 export function useTasks() {
   return useQuery({ queryKey: ["tasks", "list"], queryFn: tasksApi.listTasks, staleTime: 1000 * 60 * 2 });
@@ -19,7 +19,11 @@ export function useUpdateTask() {
 
 export function useSaveWorkflow() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (workflow: Workflow) => tasksApi.saveWorkflow(workflow),
+  return useMutation({ mutationFn: (workflow: WorkflowCreate) => tasksApi.saveWorkflow(workflow),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks", "workflows"] }),
   });
 }
+
+export function useUpdateWorkflow() { const client = useQueryClient(); return useMutation({ mutationFn: ({ id, payload }: { id: string; payload: Partial<WorkflowCreate> }) => tasksApi.updateWorkflow(id, payload), onSuccess: () => client.invalidateQueries({ queryKey: ["tasks", "workflows"] }) }); }
+export function useDeleteWorkflow() { const client = useQueryClient(); return useMutation({ mutationFn: tasksApi.deleteWorkflow, onSuccess: () => client.invalidateQueries({ queryKey: ["tasks", "workflows"] }) }); }
+export function useExecuteWorkflow() { const client = useQueryClient(); return useMutation({ mutationFn: tasksApi.executeWorkflow, onSuccess: () => client.invalidateQueries({ queryKey: ["tasks", "workflows"] }) }); }

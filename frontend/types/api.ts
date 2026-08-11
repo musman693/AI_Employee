@@ -174,12 +174,27 @@ export type Task = {
   reminder_due: string;
 };
 
+export type WorkflowAction = {
+  type: string;
+  name: string;
+  config: Record<string, string | number | boolean>;
+  order: number;
+  retry_count?: number;
+  delay_seconds?: number | null;
+};
+
 export type Workflow = {
   id: string;
   name: string;
-  trigger: string;
-  actions: string[];
+  description?: string | null;
+  status: "active" | "inactive" | "draft" | "archived";
+  trigger: { type: string; conditions?: Record<string, unknown> | null };
+  actions: WorkflowAction[];
+  execution_count?: number;
+  last_executed_at?: string | null;
 };
+
+export type WorkflowCreate = Omit<Workflow, "id" | "execution_count" | "last_executed_at">;
 
 export type DashboardMetrics = {
   total_sales: number;
