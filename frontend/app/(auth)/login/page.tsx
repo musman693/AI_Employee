@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: z.string().email({ message: "Enter a valid email" }),
   password: z.string().min(8, "Password must have at least 8 characters"),
 });
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
           Access your inbox, pipeline, documents, tasks, and business reports from one intelligent workspace.
         </p>
       </div>
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-foreground">
             Email

@@ -20,6 +20,8 @@ test('root route cannot bypass authentication', async ({ page }) => {
 
 test('login validates credentials before contacting the backend', async ({ page }) => {
   await page.goto('/login');
+  await page.getByLabel('Email').fill('not-an-email');
+  await page.getByLabel('Password').fill('short');
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText('Enter a valid email')).toBeVisible();
   await expect(page.getByText('Password must have at least 8 characters')).toBeVisible();

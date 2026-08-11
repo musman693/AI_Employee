@@ -12,7 +12,7 @@ import { ArrowRight } from "lucide-react";
 
 const signupSchema = z.object({
   name: z.string().min(3, "Enter your full name"),
-  email: z.string().email("Enter a valid email"),
+  email: z.string().email({ message: "Enter a valid email" }),
   password: z.string().min(8, "Password must have at least 8 characters"),
 });
 
@@ -48,7 +48,7 @@ export default function SignupPage() {
           Start by creating your account and connecting your business systems in one secure platform.
         </p>
       </div>
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-foreground">
             Full name
