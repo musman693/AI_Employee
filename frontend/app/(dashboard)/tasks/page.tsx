@@ -1,50 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTasks, useUpdateTask } from "@/hooks/tasks";
-import type { Task } from "@/types/api";
+import { FormEvent, useMemo, useState } from "react";
+import { CalendarDays, CheckCircle2, Filter, GripVertical, LoaderCircle, Plus, Search, Sparkles, Trash2, UserRound, X } from "lucide-react";
+import { useAssignTask, useCreateTask, useDeleteTask, useTasks, useUpdateTask } from "@/hooks/tasks";
+import type { Task, TaskCreate } from "@/types/api";
 import styles from "./tasks.module.css";
 
+const columns: Array<{ key: Task["status"]; label: string }> = [{ key: "todo", label: "To do" }, { key: "in_progress", label: "In progress" }, { key: "done", label: "Done" }];
+
 export default function TasksPage() {
-  const { data: tasks, isLoading, error } = useTasks();
-  const updateMutation = useUpdateTask();
-  const [dragged, setDragged] = useState<string | null>(null);
+  const query = useTasks(); const create = useCreateTask(); const update = useUpdateTask(); const remove = useDeleteTask(); const assign = useAssignTask();
+  const [search, setSearch] = useState(""); const [priority, setPriority] = useState("all"); const [dragged, setDragged] = useState<string | null>(null); const [target, setTarget] = useState<Task["status"] | null>(null); const [selected, setSelected] = useState<Task | null>(null); const [creating, setCreating] = useState(false); const [message, setMessage] = useState("");
+  const tasks = useMemo(() => (query.data ?? []).filter((task) => (priority === "all" || task.priority === priority) && `${task.title} ${task.assignee} ${task.project ?? ""}`.toLowerCase().includes(search.toLowerCase())), [query.data, priority, search]);
+  const grouped = useMemo(() => Object.fromEntries(columns.map(({ key }) => [key, tasks.filter((task) => task.status === key)])) as Record<Task["status"], Task[]>, [tasks]);
 
-  const columns = useMemo(() => {
-    const grouped: Record<Task["status"], Task[]> = { todo: [], in_progress: [], done: [] };
-    tasks?.forEach((task) => (grouped[task.status] ?? grouped.todo).push(task));
-    return grouped;
-  }, [tasks]);
+  async function changeStatus(id: string, status: Task["status"]) { try { await update.mutateAsync({ taskId: id, payload: { status } }); setMessage("Task status updated."); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "Task could not be updated."); } }
+  async function createTask(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); const payload: TaskCreate = { title: String(data.get("title")), description: String(data.get("description")) || null, priority: String(data.get("priority")) as Task["priority"], assigned_to: String(data.get("assignee")) || null, due_date: String(data.get("due_date")) || null, project: String(data.get("project")) || null, ai_reminder_enabled: data.get("reminder") === "on" }; try { await create.mutateAsync(payload); setCreating(false); setMessage("Task created."); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "Task could not be created."); } }
+  async function deleteTask(id: string) { try { await remove.mutateAsync(id); setSelected(null); setMessage("Task deleted."); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "Task could not be deleted."); } }
+  async function updateAssignee(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!selected) return; const value = String(new FormData(event.currentTarget).get("assignee")); try { await assign.mutateAsync({ taskId: selected.id, assignee: value }); setSelected({ ...selected, assignee: value }); setMessage("Assignee updated."); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "Assignment failed."); } }
 
-  async function changeStatus(taskId: string, status: Task["status"]) {
-    try { await updateMutation.mutateAsync({ taskId, payload: { status } }); }
-    catch (e) { console.error(e); }
-  }
-
-  if (isLoading) return <div className={styles.loading}>Loading tasks…</div>;
-  if (error) return <div className={styles.error}>Could not load tasks</div>;
-
-  return (
-    <main className={styles.frame}>
-      <header className={styles.head}><div><p>Work management</p><h1>Tasks</h1></div></header>
-      <section className={styles.board}>
-        {(["todo", "in_progress", "done"] as const).map((col) => (
-          <div key={col} className={styles.column} onDragOver={(e) => e.preventDefault()} onDrop={async (e) => {
-            e.preventDefault(); const id = e.dataTransfer.getData("text/task"); if (!id) return; await changeStatus(id, col); setDragged(null);
-          }}>
-            <h3>{col === "todo" ? "To do" : col === "in_progress" ? "In progress" : "Done"}</h3>
-            <div className={styles.cards}>
-              {columns[col].map((task) => (
-                <article key={task.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/task", String(task.id))} className={styles.card}>
-                  <div className={styles.cardTop}><strong>{task.title}</strong><span className={styles.priority}>{task.priority ?? ""}</span></div>
-                  <div className={styles.meta}><small>{task.assignee ?? "—"}</small><small>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due"}</small></div>
-                  <div className={styles.actions}><button onClick={() => void changeStatus(String(task.id), col === "done" ? "in_progress" : "done")}>{col === "done" ? "Reopen" : "Mark done"}</button></div>
-                </article>
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
-    </main>
-  );
+  return <main className={styles.frame}>
+    <header className={styles.head}><div><span>Work management</span><h1>Team tasks</h1><p>Plan, assign, and move work forward from one board.</p></div><button onClick={() => setCreating(true)}><Plus />New task</button></header>
+    {message && <div role="status" className={styles.message}>{message}<button onClick={() => setMessage("")}><X /></button></div>}
+    <section className={styles.metrics}><article><b>{tasks.length}</b><span>Total tasks</span></article><article><b>{grouped.in_progress.length}</b><span>In progress</span></article><article><b>{grouped.done.length}</b><span>Completed</span></article><article><b>{tasks.filter((task) => task.due_date && new Date(task.due_date) < new Date() && task.status !== "done").length}</b><span>Overdue</span></article></section>
+    <div className={styles.toolbar}><label><Search /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tasks, people, projects" /></label><label><Filter /><select value={priority} onChange={(e) => setPriority(e.target.value)}><option value="all">All priorities</option>{["urgent", "high", "medium", "low"].map((item) => <option key={item}>{item}</option>)}</select></label></div>
+    {query.isLoading ? <div className={styles.loading}><LoaderCircle />Loading tasks…</div> : query.error ? <div className={styles.error}>Task service is unavailable.<button onClick={() => query.refetch()}>Retry</button></div> : <section className={styles.board}>{columns.map(({ key, label }) => <div key={key} className={`${styles.column} ${target === key ? styles.dropTarget : ""}`} onDragOver={(event) => { event.preventDefault(); setTarget(key); }} onDragLeave={() => setTarget(null)} onDrop={async (event) => { event.preventDefault(); const id = event.dataTransfer.getData("text/task"); if (id) await changeStatus(id, key); setDragged(null); setTarget(null); }}><header><div><i data-column={key} /><h2>{label}</h2><span>{grouped[key].length}</span></div><button onClick={() => setCreating(true)}><Plus /></button></header><div className={styles.cards}>{grouped[key].map((task) => <article key={task.id} draggable onDragStart={(event) => { event.dataTransfer.setData("text/task", task.id); setDragged(task.id); }} onDragEnd={() => { setDragged(null); setTarget(null); }} className={`${styles.card} ${dragged === task.id ? styles.dragging : ""}`} onClick={() => setSelected(task)}><div className={styles.cardTop}><GripVertical /><span data-priority={task.priority}>{task.priority}</span></div><h3>{task.title}</h3>{task.project && <p>{task.project}</p>}<footer><span><UserRound />{task.assignee || "Unassigned"}</span><span className={task.due_date && new Date(task.due_date) < new Date() && key !== "done" ? styles.overdue : ""}><CalendarDays />{task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due date"}</span></footer></article>)}{!grouped[key].length && <div className={styles.empty}>Drop tasks here</div>}</div></div>)}</section>}
+    {creating && <Modal title="Create a task" close={() => setCreating(false)}><form onSubmit={createTask} className={styles.form}><label>Task title<input name="title" required autoFocus placeholder="What needs to be done?" /></label><label>Description<textarea name="description" placeholder="Add context and acceptance criteria" /></label><div><label>Priority<select name="priority" defaultValue="medium">{["urgent", "high", "medium", "low"].map((item) => <option key={item}>{item}</option>)}</select></label><label>Due date<input name="due_date" type="date" /></label></div><div><label>Assignee<input name="assignee" type="email" placeholder="person@company.com" /></label><label>Project<input name="project" placeholder="AI Employee OS" /></label></div><label className={styles.check}><input name="reminder" type="checkbox" />Enable AI reminders and suggestions</label><footer><button type="button" onClick={() => setCreating(false)}>Cancel</button><button disabled={create.isPending}>{create.isPending ? "Creating…" : "Create task"}</button></footer></form></Modal>}
+    {selected && <Modal title="Task details" close={() => setSelected(null)}><div className={styles.details}><span data-priority={selected.priority}>{selected.priority}</span><h2>{selected.title}</h2><p>{selected.description || "No description provided."}</p>{selected.ai_suggestions && <div className={styles.suggestion}><Sparkles />{selected.ai_suggestions}</div>}<dl><div><dt>Status</dt><dd>{selected.status.replace("_", " ")}</dd></div><div><dt>Project</dt><dd>{selected.project || "—"}</dd></div><div><dt>Due</dt><dd>{selected.due_date || "—"}</dd></div><div><dt>Progress</dt><dd>{selected.progress_percent ?? 0}%</dd></div></dl><form onSubmit={updateAssignee}><label>Assignee<input name="assignee" type="email" defaultValue={selected.assignee} required /></label><button disabled={assign.isPending}>Update assignee</button></form><footer><button className={styles.delete} onClick={() => deleteTask(selected.id)}><Trash2 />Delete</button><button onClick={() => changeStatus(selected.id, selected.status === "done" ? "in_progress" : "done")}><CheckCircle2 />{selected.status === "done" ? "Reopen" : "Mark complete"}</button></footer></div></Modal>}
+  </main>;
 }
+
+function Modal({ title, close, children }: { title: string; close: () => void; children: React.ReactNode }) { return <div className={styles.modalLayer}><button aria-label="Close dialog" className={styles.scrim} onClick={close} /><section role="dialog" aria-modal="true" aria-label={title} className={styles.modal}><header><h2>{title}</h2><button onClick={close}><X /></button></header>{children}</section></div>; }

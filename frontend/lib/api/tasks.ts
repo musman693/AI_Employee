@@ -1,4 +1,4 @@
-import type { Task, Workflow, WorkflowCreate } from "@/types/api";
+import type { Task, TaskCreate, Workflow, WorkflowCreate } from "@/types/api";
 import { apiClient } from "./base";
 
 type BackendTask = Omit<Task, "status" | "assignee"> & {
@@ -10,11 +10,7 @@ type BackendTask = Omit<Task, "status" | "assignee"> & {
 export const tasksApi = {
   listTasks: async () => {
     const response = await apiClient.get<{ tasks: BackendTask[] }>('/api/v1/task');
-    return response.data.tasks.map((task) => ({
-      ...task,
-      assignee: task.assigned_to ?? task.assignee ?? "",
-      status: task.status === "completed" || task.status === "cancelled" ? "done" : task.status === "in_review" ? "in_progress" : task.status,
-    })) as Task[];
+    return response.data.tasks.map(normalizeTask);
   },
   updateTask: async (taskId: string, payload: Partial<Task>) => {
     if (payload.status) {
@@ -24,6 +20,15 @@ export const tasksApi = {
     }
     const response = await apiClient.put<Task>(`/api/v1/task/${taskId}`, payload);
     return response.data;
+  },
+  createTask: async (payload: TaskCreate) => {
+    const response = await apiClient.post<BackendTask>('/api/v1/task/', payload);
+    return normalizeTask(response.data);
+  },
+  deleteTask: async (taskId: string) => apiClient.delete(`/api/v1/task/${taskId}`),
+  assignTask: async (taskId: string, assignedTo: string) => {
+    const response = await apiClient.post<BackendTask>(`/api/v1/task/${taskId}/assign`, { assigned_to: assignedTo });
+    return normalizeTask(response.data);
   },
   listWorkflows: async () => {
     const response = await apiClient.get<{ workflows: Workflow[] }>('/api/v1/workflow');
@@ -43,3 +48,5 @@ export const tasksApi = {
     return response.data;
   },
 };
+
+function normalizeTask(task: BackendTask): Task { return { ...task, assignee: task.assigned_to ?? task.assignee ?? "", status: task.status === "completed" || task.status === "cancelled" ? "done" : task.status === "in_review" ? "in_progress" : task.status } as Task; }

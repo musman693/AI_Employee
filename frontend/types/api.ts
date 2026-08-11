@@ -167,12 +167,19 @@ export type ContractAnalysis = {
 export type Task = {
   id: string;
   title: string;
+  description?: string | null;
   assignee: string;
-  priority: "Low" | "Medium" | "High";
-  due_date: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  due_date: string | null;
   status: "todo" | "in_progress" | "done";
-  reminder_due: string;
+  project?: string | null;
+  tags?: string[];
+  progress_percent?: number;
+  ai_suggestions?: string | null;
+  ai_reminder_enabled?: boolean;
 };
+
+export type TaskCreate = Pick<Task, "title" | "priority"> & Partial<Pick<Task, "description" | "due_date" | "project" | "tags" | "ai_reminder_enabled">> & { assigned_to?: string | null; estimated_hours?: number | null };
 
 export type WorkflowAction = {
   type: string;
