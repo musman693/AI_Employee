@@ -10,4 +10,4 @@ export async function proxy(request: NextRequest) {
   return NextResponse.redirect(login);
 }
 
-export const config = { matcher: ["/inbox/:path*", "/crm/:path*", "/finance/:path*", "/intelligence/:path*", "/tasks/:path*", "/workflow/:path*", "/reports/:path*", "/settings/:path*"] };
+export const config = { matcher: ["/dashboard/:path*", "/inbox/:path*", "/crm/:path*", "/finance/:path*", "/intelligence/:path*", "/tasks/:path*", "/workflow/:path*", "/reports/:path*", "/settings/:path*"] };

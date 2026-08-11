@@ -15,7 +15,7 @@ test('protected routes redirect to sign in and preserve destination', async ({ p
 
 test('root route cannot bypass authentication', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Finbox/);
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fdashboard/);
 });
 
 test('login validates credentials before contacting the backend', async ({ page }) => {
